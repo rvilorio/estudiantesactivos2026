@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISFODOSU - Dashboard Matricular e Ingresos 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        isfodosu: {
+                            navy: '#002D62',
+                            gold: '#F5B800',
+                            slate: '#1F4E79',
+                            lightNavy: '#003e85',
+                            lightGold: '#ffc824',
+                            bgSoft: '#F2F5F9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 45, 98, 0.08);
+        }
+        .tab-active {
+            border-bottom: 3px solid #F5B800;
+            color: #002D62;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 flex flex-col bg-slate-50 antialiased">
+
+    <!-- HEADER / BANNER INSTITUCIONAL -->
+    <header class="bg-isfodosu-navy text-white shadow-lg border-b-4 border-isfodosu-gold relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+            <svg width="300" height="300" viewBox="0 0 100 100" fill="currentColor">
+                <circle cx="50" cy="50" r="40" stroke="white" stroke-width="4" fill="none"/>
+                <polygon points="50,15 61,38 85,38 66,53 73,76 50,61 27,76 34,53 15,38 39,38" fill="white"/>
+            </svg>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-white rounded-xl p-2 flex items-center justify-center shadow-md flex-shrink-0">
+                        <!-- Emblem ISFODOSU logo mockup -->
+                        <div class="w-full h-full border-2 border-isfodosu-navy rounded-lg flex flex-col items-center justify-center bg-isfodosu-navy text-white font-black text-xs leading-none tracking-tighter">
+                            <span class="text-isfodosu-gold">ISFO</span>
+                            <span class="text-[9px]">DOSU</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-isfodosu-gold/20 text-isfodosu-gold text-xs px-2.5 py-0.5 rounded-full font-semibold border border-isfodosu-gold/30">
+                                Rep. Dominicana
+                            </span>
+                            <span class="text-xs text-slate-300">Año Académico 2026</span>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1">
+                            Instituto Superior de Formación Docente Salomé Ureña
+                        </h1>
+                        <p class="text-xs sm:text-sm text-slate-300">
+                            Sistema de Consulta Analítica & Dashboard Matricular de Estudiantes Activos
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 self-start md:self-auto">
+                    <button onclick="exportCSV()" class="bg-isfodosu-gold hover:bg-isfodosu-lightGold text-isfodosu-navy font-bold text-xs px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+                    </button>
+                    <button onclick="resetFilters()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3.5 py-2.5 rounded-lg border border-white/20 transition-all flex items-center gap-1.5">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Restablecer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PANEL PRINCIPAL CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+
+        <!-- PANEL DE FILTROS Y BÚSQUEDA -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 card-shadow border border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Buscador -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-isfodosu-slate"></i> Búsqueda en tiempo real
+                    </label>
+                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Buscar por recinto, ciudad o código..." 
+                        class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-isfodosu-navy focus:bg-white transition-all">
+                </div>
+
+                <!-- Filtro por Recinto -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-isfodosu-slate"></i> Seleccionar Recinto
+                    </label>
+                    <select id="campusFilter" onchange="applyFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-isfodosu-navy focus:bg-white transition-all">
+                        <option value="ALL">Todos los Recintos (6)</option>
+                        <option value="FEM">FEM - Félix Evaristo Mejía (Sto. Dgo.)</option>
+                        <option value="EMH">EMH - Eugenia María de Hostos (Sto. Dgo.)</option>
+                        <option value="JVM">JVM - Juan Vicente Moscoso (San Pedro)</option>
+                        <option value="EPH">EPH - Emilio Prud'Homme (Santiago)</option>
+                        <option value="LNNM">LNNM - Luis N. Núñez M. (Licey al Medio)</option>
+                        <option value="RUM">RUM - Urania Montás (San Juan)</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por Período -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-isfodosu-slate"></i> Período Académico
+                    </label>
+                    <select id="periodFilter" onchange="applyFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-isfodosu-navy focus:bg-white transition-all">
+                        <option value="ALL">Año Completo 2026 (Todos)</option>
+                        <option value="p1">Período 2026-01</option>
+                        <option value="p2">Período 2026-02</option>
+                        <option value="p3">Período 2026-03</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por Región Geográfica -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-isfodosu-slate"></i> Región Geográfica
+                    </label>
+                    <select id="regionFilter" onchange="applyFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-isfodosu-navy focus:bg-white transition-all">
+                        <option value="ALL">Todas las Regiones</option>
+                        <option value="Metropolitana">Zona Metropolitana (Sto. Dgo.)</option>
+                        <option value="Cibao">Región Cibao (Santiago / Licey)</option>
+                        <option value="Este">Región Este (San Pedro de Macorís)</option>
+                        <option value="Sur">Región Sur (San Juan de la Maguana)</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Tags de Filtros Activos -->
+            <div id="activeFilterTags" class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span class="font-medium text-slate-400">Filtros activos:</span>
+                <span id="tagSummary" class="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-medium">Ninguno (Mostrando total general)</span>
+            </div>
+        </section>
+
+        <!-- TARJETAS KPI DINÁMICAS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- KPI 1: Total Matrícula -->
+            <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-isfodosu-navy"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Estudiantes</p>
+                        <h3 id="kpiTotal" class="text-3xl font-extrabold text-isfodosu-navy mt-1">1,428</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-isfodosu-navy flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                    <span id="kpiTotalShare" class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">100%</span>
+                    <span>del universo evaluado</span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Período Pico -->
+            <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-isfodosu-gold"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Período Pico</p>
+                        <h3 id="kpiPeakPeriod" class="text-3xl font-extrabold text-slate-800 mt-1">2026-03</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                    <span id="kpiPeakValue" class="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded">801 est.</span>
+                    <span>56.1% de la matrícula total</span>
+                </div>
+            </div>
+
+            <!-- KPI 3: Recinto Líder -->
+            <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-isfodosu-slate"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Recinto Líder</p>
+                        <h3 id="kpiLeader" class="text-3xl font-extrabold text-isfodosu-slate mt-1">RUM</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-isfodosu-slate flex items-center justify-center">
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                    <span id="kpiLeaderValue" class="text-isfodosu-slate font-bold bg-slate-100 px-2 py-0.5 rounded">311 est.</span>
+                    <span>Urania Montás (San Juan)</span>
+                </div>
+            </div>
+
+            <!-- KPI 4: Promedio por Recinto -->
+            <div class="bg-white rounded-2xl p-5 card-shadow border border-slate-100 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-2 h-full bg-indigo-500"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Promedio por Recinto</p>
+                        <h3 id="kpiAvg" class="text-3xl font-extrabold text-slate-800 mt-1">238.0</h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="calculator" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                    <span id="kpiRecintoCount" class="text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded">6 Recintos</span>
+                    <span>Desviación std: ±45.4</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- PESTAÑAS DE VISTA (TAB NAVIGATION) -->
+        <section class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+            <div class="border-b border-slate-200 px-6 pt-4 flex gap-6 overflow-x-auto">
+                <button onclick="switchTab('charts')" id="tabBtn-charts" class="tab-active py-3 px-2 text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Vista de Gráficos Integrados
+                </button>
+                <button onclick="switchTab('compare')" id="tabBtn-compare" class="py-3 px-2 text-xs sm:text-sm text-slate-500 hover:text-slate-800 font-medium transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="git-compare" class="w-4 h-4"></i> Comparador de Recintos
+                </button>
+                <button onclick="switchTab('analysis')" id="tabBtn-analysis" class="py-3 px-2 text-xs sm:text-sm text-slate-500 hover:text-slate-800 font-medium transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Hallazgos & Resumen Ejecutivo
+                </button>
+            </div>
+
+            <!-- CONTENIDO TAB 1: GRÁFICOS -->
+            <div id="tabContent-charts" class="p-5 sm:p-6 space-y-6">
+                
+                <!-- GRID GRÁFICOS PRINCIPALES -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Chart 1: Totales por Recinto -->
+                    <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-isfodosu-navy"></i> Matrícula Total por Recinto
+                                </h4>
+                                <p class="text-xs text-slate-500">Comparativa consolidada del número de estudiantes</p>
+                            </div>
+                            <span class="text-[11px] font-semibold bg-blue-100 text-isfodosu-navy px-2 py-0.5 rounded">Absoluto</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="chartBar"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Desglose Apilado por Período -->
+                    <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    <i data-lucide="layers" class="w-4 h-4 text-isfodosu-gold"></i> Composición por Período Académico
+                                </h4>
+                                <p class="text-xs text-slate-500">Ingreso desagregado (2026-01, 2026-02, 2026-03)</p>
+                            </div>
+                            <span class="text-[11px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Apilado</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="chartStacked"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 3: Donut % Share -->
+                    <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    <i data-lucide="pie-chart" class="w-4 h-4 text-isfodosu-slate"></i> Participación Porcentual (%)
+                                </h4>
+                                <p class="text-xs text-slate-500">Distribución porcentual sobre el total general</p>
+                            </div>
+                            <span class="text-[11px] font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">% Share</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="chartDonut"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 4: Tendencia de Períodos -->
+                    <div class="bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                    <i data-lucide="line-chart" class="w-4 h-4 text-emerald-600"></i> Evolución de Matrícula por Período
+                                </h4>
+                                <p class="text-xs text-slate-500">Comportamiento temporal a lo largo del año 2026</p>
+                            </div>
+                            <span class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Tendencia</span>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="chartLine"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CONTENIDO TAB 2: MÓDULO COMPARADOR -->
+            <div id="tabContent-compare" class="p-5 sm:p-6 hidden space-y-6">
+                <div class="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-800 text-base mb-1 flex items-center gap-2">
+                        <i data-lucide="git-compare" class="w-5 h-5 text-isfodosu-navy"></i> Módulo de Comparación Directa entre Recintos
+                    </h4>
+                    <p class="text-xs text-slate-500 mb-4">Seleccione dos recintos institucionales para analizar su volumen matricular, diferencias absolutas y desglose por período.</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Recinto Base A:</label>
+                            <select id="compCampusA" onchange="updateComparison()" class="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-isfodosu-navy">
+                                <option value="FEM">FEM - Félix Evaristo Mejía</option>
+                                <option value="EMH">EMH - Eugenia María de Hostos</option>
+                                <option value="JVM">JVM - Juan Vicente Moscoso</option>
+                                <option value="EPH">EPH - Emilio Prud'Homme</option>
+                                <option value="LNNM">LNNM - Luis N. Núñez M.</option>
+                                <option value="RUM" selected>RUM - Urania Montás</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Recinto Comparativo B:</label>
+                            <select id="compCampusB" onchange="updateComparison()" class="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-isfodosu-gold">
+                                <option value="FEM">FEM - Félix Evaristo Mejía</option>
+                                <option value="EMH" selected>EMH - Eugenia María de Hostos</option>
+                                <option value="JVM">JVM - Juan Vicente Moscoso</option>
+                                <option value="EPH">EPH - Emilio Prud'Homme</option>
+                                <option value="LNNM">LNNM - Luis N. Núñez M.</option>
+                                <option value="RUM">RUM - Urania Montás</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TARJETAS COMPARATIVAS -->
+                    <div id="compareCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Generado por JS -->
+                    </div>
+
+                    <!-- GRÁFICO COMPARATIVO -->
+                    <div class="mt-6 bg-white p-4 rounded-xl border border-slate-200">
+                        <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Comparativa por Períodos</h5>
+                        <div class="h-64 w-full relative">
+                            <canvas id="chartComp"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO TAB 3: RESUMEN EJECUTIVO & HALLAZGOS -->
+            <div id="tabContent-analysis" class="p-5 sm:p-6 hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="md:col-span-2 space-y-4">
+                        <h4 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                            <i data-lucide="file-check-2" class="w-5 h-5 text-isfodosu-navy"></i> Diagnóstico Estadístico Institucional 2026
+                        </h4>
+                        
+                        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+                            <p class="font-semibold text-isfodosu-navy text-sm">1. Concentración de Matrícula en el Período 2026-03</p>
+                            <p>El período <strong>2026-03</strong> representó la principal fuente de nuevo ingreso y matrícula activa para el instituto con un total de <strong>801 estudiantes (56.09%)</strong>. En contraste, el período <strong>2026-02</strong> funcionó como un ciclo valle regular con solo 133 ingresos (9.31%).</p>
+                        </div>
+
+                        <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100 text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+                            <p class="font-semibold text-amber-900 text-sm">2. Comportamiento en los Recintos RUM y JVM (Período 2026-02)</p>
+                            <p>Tanto el Recinto <strong>Urania Montás (RUM)</strong> como el Recinto <strong>Juan Vicente Moscoso (JVM)</strong> registraron <strong>0 inscripciones en el período 2026-02</strong>. Este patrón obedece al calendario de admisión por cohortes alternas en dichas sedes regionales.</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+                            <p class="font-semibold text-isfodosu-slate text-sm">3. Liderazgo Matricular del Recinto Urania Montás (RUM)</p>
+                            <p>Con <strong>311 estudiantes inscritos (21.78% del total)</strong>, la sede Urania Montás en San Juan de la Maguana se consolida como el recinto con mayor número de estudiantes activos en el año 2026, seguido por Eugenia María de Hostos (246) y Félix Evaristo Mejía (241).</p>
+                        </div>
+                    </div>
+
+                    <!-- RESUMEN DE METRICAS EN TABLA -->
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold tracking-widest text-isfodosu-gold uppercase block mb-1">Métricas Clave</span>
+                            <h5 class="text-lg font-bold">Resumen Estadístico</h5>
+                            <hr class="border-slate-800 my-3">
+                            <dl class="space-y-3 text-xs">
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Población Total:</dt>
+                                    <dd class="font-bold text-white">1,428 est.</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Media por Recinto:</dt>
+                                    <dd class="font-bold text-white">238.0 est.</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Mediana Estimada:</dt>
+                                    <dd class="font-bold text-white">236.5 est.</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Desviación Estándar:</dt>
+                                    <dd class="font-bold text-white">45.4 est.</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Recinto Máximo:</dt>
+                                    <dd class="font-bold text-isfodosu-gold">RUM (311)</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-slate-400">Recinto Mínimo:</dt>
+                                    <dd class="font-bold text-sky-400">EPH (170)</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Fuente: ISFODOSU 2026</span>
+                            <span class="bg-isfodosu-navy text-xs px-2 py-0.5 rounded text-white font-mono">V1.0</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TABLA ESTADÍSTICA INTERACTIVA DE DATOS -->
+        <section class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="table" class="w-4 h-4 text-isfodosu-navy"></i> Cuadro Estadístico de Matrícula e Ingresos 2026
+                    </h3>
+                    <p class="text-xs text-slate-500">Haga clic en los encabezados de las columnas para ordenar ascendentemente o descendentemente</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <span id="recordCounter" class="bg-slate-100 px-3 py-1 rounded-full font-medium">Mostrando 6 recintos</span>
+                </div>
+            </div>
+
+            <!-- TABLA RESPONSIVA -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm border-collapse">
+                    <thead class="bg-isfodosu-navy text-white select-none">
+                        <tr>
+                            <th onclick="sortTable('rank')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-center w-12">
+                                Rank <i id="sort-rank" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('code')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all">
+                                Código <i id="sort-code" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('name')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all">
+                                Nombre del Recinto <i id="sort-name" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('city')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all">
+                                Ubicación / Región <i id="sort-city" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('p1')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-right">
+                                2026-01 <i id="sort-p1" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('p2')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-right">
+                                2026-02 <i id="sort-p2" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('p3')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-right">
+                                2026-03 <i id="sort-p3" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th onclick="sortTable('total')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-right bg-isfodosu-slate">
+                                Total Activos <i id="sort-total" data-lucide="arrow-down" class="inline w-3 h-3 text-isfodosu-gold"></i>
+                            </th>
+                            <th onclick="sortTable('share')" class="py-3.5 px-4 font-semibold cursor-pointer hover:bg-isfodosu-lightNavy transition-all text-center">
+                                % Part. <i id="sort-share" data-lucide="arrow-up-down" class="inline w-3 h-3 opacity-60"></i>
+                            </th>
+                            <th class="py-3.5 px-4 font-semibold text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 bg-white">
+                        <!-- Filas generadas por JS -->
+                    </tbody>
+                    <!-- FILA DE TOTALES DINÁMICOS -->
+                    <tfoot class="bg-slate-100 text-slate-900 font-bold border-t-2 border-isfodosu-navy text-xs sm:text-sm">
+                        <tr>
+                            <td colspan="4" class="py-3.5 px-4 text-right uppercase tracking-wider text-isfodosu-navy">TOTALES RECALCULADOS:</td>
+                            <td id="tfootP1" class="py-3.5 px-4 text-right text-isfodosu-navy">494</td>
+                            <td id="tfootP2" class="py-3.5 px-4 text-right text-isfodosu-navy">133</td>
+                            <td id="tfootP3" class="py-3.5 px-4 text-right text-isfodosu-navy">801</td>
+                            <td id="tfootTotal" class="py-3.5 px-4 text-right text-isfodosu-navy bg-slate-200 text-sm font-extrabold">1,428</td>
+                            <td id="tfootShare" class="py-3.5 px-4 text-center text-isfodosu-navy font-bold">100.0%</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-10">
+        <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center space-y-2 sm:space-y-0">
+            <div>
+                <p class="font-semibold text-slate-300">Instituto Superior de Formación Docente Salomé Ureña (ISFODOSU)</p>
+                <p class="text-slate-500 mt-0.5">Sistema Integrado de Estadísticas Académicas © 2026</p>
+            </div>
+            <div class="flex justify-center gap-4 text-slate-400">
+                <span class="hover:text-white transition-all cursor-pointer">Sede Central</span>
+                <span>•</span>
+                <span class="hover:text-white transition-all cursor-pointer">Vicerrectoría Académica</span>
+                <span>•</span>
+                <span class="hover:text-white transition-all cursor-pointer">Transparencia</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE DETALLE POR RECINTO -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 transform transition-all">
+            <div class="bg-isfodosu-navy text-white p-5 flex justify-between items-start relative">
+                <div>
+                    <span id="modalCodeBadge" class="bg-isfodosu-gold text-isfodosu-navy font-extrabold text-xs px-2.5 py-0.5 rounded uppercase">RECINTO</span>
+                    <h3 id="modalName" class="text-lg font-bold mt-1">Nombre del Recinto</h3>
+                    <p id="modalCity" class="text-xs text-slate-300 flex items-center gap-1 mt-0.5">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Ubicación
+                    </p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">2026-01</span>
+                        <span id="modalP1" class="text-lg font-extrabold text-slate-800">0</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">2026-02</span>
+                        <span id="modalP2" class="text-lg font-extrabold text-slate-800">0</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">2026-03</span>
+                        <span id="modalP3" class="text-lg font-extrabold text-slate-800">0</span>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Total Estudiantes Activos</span>
+                        <span id="modalTotal" class="text-2xl font-black text-isfodosu-navy">0</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-500 block">Cuota Institucional</span>
+                        <span id="modalShare" class="text-lg font-bold text-isfodosu-slate">0%</span>
+                    </div>
+                </div>
+
+                <div id="modalDescription" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <!-- Bio / Observaciones -->
+                </div>
+            </div>
+
+            <div class="bg-slate-100 px-6 py-3 text-right">
+                <button onclick="closeModal()" class="bg-isfodosu-navy text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-isfodosu-lightNavy transition-all">
+                    Cerrar Detalle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & CHARTS -->
+    <script>
+        // DATOS MAESTROS DE ISFODOSU (2026)
+        const rawData = [
+            { 
+                code: 'FEM', 
+                name: 'Félix Evaristo Mejía', 
+                city: 'Santo Domingo', 
+                region: 'Metropolitana', 
+                p1: 67, 
+                p2: 48, 
+                p3: 126,
+                desc: 'Ubicado en el Distrito Nacional, Santo Domingo. Es una de las sedes principales de formación docente en el área metropolitana.'
+            },
+            { 
+                code: 'EMH', 
+                name: 'Eugenia María de Hostos', 
+                city: 'Santo Domingo', 
+                region: 'Metropolitana', 
+                p1: 88, 
+                p2: 56, 
+                p3: 102,
+                desc: 'Ubicado en Santo Domingo. Especializado en Educación Física y programas de pedagógicos avanzados.'
+            },
+            { 
+                code: 'JVM', 
+                name: 'Juan Vicente Moscoso', 
+                city: 'San Pedro de Macorís', 
+                region: 'Este', 
+                p1: 87, 
+                p2: 0, 
+                p3: 141,
+                desc: 'Sede principal para la región Este en San Pedro de Macorís. Mantiene ingreso concentrado por semestres clave.'
+            },
+            { 
+                code: 'EPH', 
+                name: 'Emilio Prud\'Homme', 
+                city: 'Santiago de los Caballeros', 
+                region: 'Cibao', 
+                p1: 58, 
+                p2: 12, 
+                p3: 100,
+                desc: 'Recinto histórico situado en el centro de Santiago de los Caballeros, atendiendo a la comunidad educativa del Cibao Central.'
+            },
+            { 
+                code: 'LNNM', 
+                name: 'Luis Napoleón Núñez Molina', 
+                city: 'Licey al Medio', 
+                region: 'Cibao', 
+                p1: 72, 
+                p2: 17, 
+                p3: 143,
+                desc: 'Ubicado en Licey al Medio, provincia Santiago. Campus de gran extensión con alta demanda estudiantil en el Cibao.'
+            },
+            { 
+                code: 'RUM', 
+                name: 'Urania Montás', 
+                city: 'San Juan de la Maguana', 
+                region: 'Sur', 
+                p1: 122, 
+                p2: 0, 
+                p3: 189,
+                desc: 'Recinto de referencia para toda la región Sur (San Juan de la Maguana). Posee la mayor matrícula total activa del año 2026.'
+            }
+        ];
+
+        // ESTADO GLOBAL DE APLICACIÓN
+        let currentData = [];
+        let sortColumn = 'total';
+        let sortDirection = 'desc';
+        
+        // INSTANCIAS DE CHART.JS
+        let chartBarInstance = null;
+        let chartStackedInstance = null;
+        let chartDonutInstance = null;
+        let chartLineInstance = null;
+        let chartCompInstance = null;
+
+        // INICIALIZACIÓN AL CARGAR PAGINA
+        window.onload = function() {
+            lucide.createIcons();
+            calculateDerivedData();
+            initCharts();
+            applyFilters();
+            updateComparison();
+        };
+
+        // CÁLCULO DE TOTALES, % SHARE Y RANKINGS GENERALES
+        function calculateDerivedData() {
+            const grandTotal = rawData.reduce((sum, item) => sum + item.p1 + item.p2 + item.p3, 0);
+            
+            rawData.forEach(item => {
+                item.total = item.p1 + item.p2 + item.p3;
+                item.share = parseFloat(((item.total / grandTotal) * 100).toFixed(2));
+            });
+
+            // Ranking global
+            const sorted = [...rawData].sort((a, b) => b.total - a.total);
+            sorted.forEach((item, index) => {
+                const orig = rawData.find(r => r.code === item.code);
+                if (orig) orig.rank = index + 1;
+            });
+
+            currentData = [...rawData];
+        }
+
+        // APLICAR FILTROS Y RECALCULAR COMPONENTES
+        function applyFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const campusVal = document.getElementById('campusFilter').value;
+            const periodVal = document.getElementById('periodFilter').value;
+            const regionVal = document.getElementById('regionFilter').value;
+
+            currentData = rawData.filter(item => {
+                const matchSearch = item.name.toLowerCase().includes(searchVal) || 
+                                    item.code.toLowerCase().includes(searchVal) || 
+                                    item.city.toLowerCase().includes(searchVal);
+                
+                const matchCampus = (campusVal === 'ALL') || (item.code === campusVal);
+                const matchRegion = (regionVal === 'ALL') || (item.region === regionVal);
+
+                return matchSearch && matchCampus && matchRegion;
+            });
+
+            // Actualizar Tag Summary
+            const tags = [];
+            if (campusVal !== 'ALL') tags.push(`Recinto: ${campusVal}`);
+            if (periodVal !== 'ALL') tags.push(`Período: ${periodVal}`);
+            if (regionVal !== 'ALL') tags.push(`Región: ${regionVal}`);
+            if (searchVal) tags.push(`Búsqueda: "${searchVal}"`);
+
+            document.getElementById('tagSummary').textContent = tags.length > 0 
+                ? tags.join(' | ') 
+                : 'Ninguno (Mostrando total general)';
+
+            // Reordenar datos
+            sortCurrentData();
+
+            // Renderizar tabla y actualizar KPIs + Gráficos
+            renderTable(periodVal);
+            updateKPIs(periodVal);
+            updateCharts(periodVal);
+        }
+
+        // ORDENAMIENTO DE COLUMNAS
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = (column === 'name' || column === 'code' || column === 'city') ? 'asc' : 'desc';
+            }
+
+            // Actualizar iconos de ordenamiento en thead
+            ['rank', 'code', 'name', 'city', 'p1', 'p2', 'p3', 'total', 'share'].forEach(col => {
+                const el = document.getElementById(`sort-${col}`);
+                if (el) {
+                    if (col === sortColumn) {
+                        el.setAttribute('data-lucide', sortDirection === 'asc' ? 'arrow-up' : 'arrow-down');
+                        el.classList.remove('opacity-60');
+                        el.classList.add('text-isfodosu-gold');
+                    } else {
+                        el.setAttribute('data-lucide', 'arrow-up-down');
+                        el.classList.add('opacity-60');
+                        el.classList.remove('text-isfodosu-gold');
+                    }
+                }
+            });
+            lucide.createIcons();
+
+            sortCurrentData();
+            renderTable(document.getElementById('periodFilter').value);
+        }
+
+        function sortCurrentData() {
+            currentData.sort((a, b) => {
+                let valA = a[sortColumn];
+                let valB = b[sortColumn];
+
+                if (typeof valA === 'string') {
+                    return sortDirection === 'asc' 
+                        ? valA.localeCompare(valB) 
+                        : valB.localeCompare(valA);
+                } else {
+                    return sortDirection === 'asc' ? valA - valB : valB - valA;
+                }
+            });
+        }
+
+        // RENDERIZAR TABLA CON TOTALES RECALCULADOS
+        function renderTable(periodFilter = 'ALL') {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let sumP1 = 0, sumP2 = 0, sumP3 = 0, sumTotal = 0;
+            const globalTotal = rawData.reduce((s, i) => s + i.total, 0);
+
+            if (currentData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="py-8 text-center text-slate-400">
+                            <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                            No se encontraron recintos que coincidan con los filtros aplicados.
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                updateFooters(0, 0, 0, 0, 0);
+                return;
+            }
+
+            currentData.forEach((item, index) => {
+                sumP1 += item.p1;
+                sumP2 += item.p2;
+                sumP3 += item.p3;
+                
+                let displayVal = item.total;
+                if (periodFilter === 'p1') displayVal = item.p1;
+                if (periodFilter === 'p2') displayVal = item.p2;
+                if (periodFilter === 'p3') displayVal = item.p3;
+
+                sumTotal += displayVal;
+
+                // Color badge para rank
+                let rankBadgeClass = 'bg-slate-100 text-slate-700';
+                if (item.rank === 1) rankBadgeClass = 'bg-amber-100 text-amber-800 font-bold border border-amber-300';
+                if (item.rank === 2) rankBadgeClass = 'bg-slate-200 text-slate-800 font-bold';
+                if (item.rank === 3) rankBadgeClass = 'bg-orange-100 text-orange-800 font-bold';
+
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white hover:bg-slate-50 transition-all' : 'bg-slate-50/50 hover:bg-slate-100/60 transition-all';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-block w-6 h-6 rounded-full text-xs flex items-center justify-center ${rankBadgeClass}">
+                            ${item.rank}º
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-bold text-isfodosu-navy">${item.code}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${item.name}</td>
+                    <td class="py-3 px-4 text-slate-600">
+                        <span class="font-medium">${item.city}</span>
+                        <span class="text-[10px] text-slate-400 block">${item.region}</span>
+                    </td>
+                    <td class="py-3 px-4 text-right font-mono ${periodFilter === 'p1' ? 'font-bold text-isfodosu-navy bg-blue-50/50' : ''}">${item.p1}</td>
+                    <td class="py-3 px-4 text-right font-mono ${item.p2 === 0 ? 'text-slate-300' : ''} ${periodFilter === 'p2' ? 'font-bold text-isfodosu-navy bg-blue-50/50' : ''}">${item.p2}</td>
+                    <td class="py-3 px-4 text-right font-mono ${periodFilter === 'p3' ? 'font-bold text-isfodosu-navy bg-blue-50/50' : ''}">${item.p3}</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-isfodosu-navy bg-slate-50">${displayVal.toLocaleString()}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-2 justify-center">
+                            <span class="font-semibold text-xs text-slate-700 w-10 text-right">${item.share}%</span>
+                            <div class="w-16 bg-slate-200 h-2 rounded-full overflow-hidden hidden sm:block">
+                                <div class="bg-isfodosu-navy h-full rounded-full" style="width: ${item.share * 4}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="openModal('${item.code}')" class="p-1.5 text-isfodosu-slate hover:text-isfodosu-navy hover:bg-slate-200 rounded-lg transition-all" title="Ver Ficha Detallada">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('recordCounter').textContent = `Mostrando ${currentData.length} de 6 recintos`;
+            updateFooters(sumP1, sumP2, sumP3, sumTotal, globalTotal);
+            lucide.createIcons();
+        }
+
+        // ACTUALIZAR FILA DE TOTALES DINÁMICOS
+        function updateFooters(sumP1, sumP2, sumP3, sumTotal, globalTotal) {
+            document.getElementById('tfootP1').textContent = sumP1.toLocaleString();
+            document.getElementById('tfootP2').textContent = sumP2.toLocaleString();
+            document.getElementById('tfootP3').textContent = sumP3.toLocaleString();
+            document.getElementById('tfootTotal').textContent = sumTotal.toLocaleString();
+            
+            const sharePercent = globalTotal > 0 ? ((sumTotal / globalTotal) * 100).toFixed(1) : '0.0';
+            document.getElementById('tfootShare').textContent = `${sharePercent}%`;
+        }
+
+        // RECALCULAR TARJETAS KPI EN TIEMPO REAL
+        function updateKPIs(periodFilter = 'ALL') {
+            let total = 0;
+            currentData.forEach(item => {
+                if (periodFilter === 'p1') total += item.p1;
+                else if (periodFilter === 'p2') total += item.p2;
+                else if (periodFilter === 'p3') total += item.p3;
+                else total += item.total;
+            });
+
+            const grandTotalAll = rawData.reduce((s, i) => s + i.total, 0);
+            const totalShare = grandTotalAll > 0 ? ((total / grandTotalAll) * 100).toFixed(1) : 0;
+
+            document.getElementById('kpiTotal').textContent = total.toLocaleString();
+            document.getElementById('kpiTotalShare').textContent = `${totalShare}%`;
+
+            // Leader
+            if (currentData.length > 0) {
+                const sortedLocal = [...currentData].sort((a, b) => {
+                    let valA = periodFilter === 'p1' ? a.p1 : (periodFilter === 'p2' ? a.p2 : (periodFilter === 'p3' ? a.p3 : a.total));
+                    let valB = periodFilter === 'p1' ? b.p1 : (periodFilter === 'p2' ? b.p2 : (periodFilter === 'p3' ? b.p3 : b.total));
+                    return valB - valA;
+                });
+                const leader = sortedLocal[0];
+                let leaderVal = periodFilter === 'p1' ? leader.p1 : (periodFilter === 'p2' ? leader.p2 : (periodFilter === 'p3' ? leader.p3 : leader.total));
+
+                document.getElementById('kpiLeader').textContent = leader.code;
+                document.getElementById('kpiLeaderValue').textContent = `${leaderVal} est.`;
+            } else {
+                document.getElementById('kpiLeader').textContent = 'N/A';
+                document.getElementById('kpiLeaderValue').textContent = '0 est.';
+            }
+
+            // Average
+            const avg = currentData.length > 0 ? (total / currentData.length).toFixed(1) : '0.0';
+            document.getElementById('kpiAvg').textContent = avg;
+            document.getElementById('kpiRecintoCount').textContent = `${currentData.length} Recintos`;
+        }
+
+        // INICIALIZAR GRÁFICOS CON CHART.JS
+        function initCharts() {
+            const chartColors = {
+                navy: '#002D62',
+                gold: '#F5B800',
+                slate: '#1F4E79',
+                lightNavy: '#336699',
+                softGold: '#FFD700',
+                accentRed: '#E74C3C',
+                palette: ['#002D62', '#1F4E79', '#F5B800', '#2E7D32', '#D97706', '#6B21A8']
+            };
+
+            const labels = rawData.map(d => d.code);
+
+            // Chart 1: Bar Totales
+            const ctxBar = document.getElementById('chartBar').getContext('2d');
+            chartBarInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Estudiantes',
+                        data: rawData.map(d => d.total),
+                        backgroundColor: chartColors.navy,
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#001E42'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Chart 2: Stacked Bar
+            const ctxStacked = document.getElementById('chartStacked').getContext('2d');
+            chartStackedInstance = new Chart(ctxStacked, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: '2026-01', data: rawData.map(d => d.p1), backgroundColor: '#1F4E79' },
+                        { label: '2026-02', data: rawData.map(d => d.p2), backgroundColor: '#F5B800' },
+                        { label: '2026-03', data: rawData.map(d => d.p3), backgroundColor: '#002D62' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    },
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+
+            // Chart 3: Donut % Share
+            const ctxDonut = document.getElementById('chartDonut').getContext('2d');
+            chartDonutInstance = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: rawData.map(d => d.total),
+                        backgroundColor: chartColors.palette
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Chart 4: Line Trend por Período
+            const ctxLine = document.getElementById('chartLine').getContext('2d');
+            const p1Total = rawData.reduce((s, d) => s + d.p1, 0);
+            const p2Total = rawData.reduce((s, d) => s + d.p2, 0);
+            const p3Total = rawData.reduce((s, d) => s + d.p3, 0);
+
+            chartLineInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['Período 2026-01', 'Período 2026-02', 'Período 2026-03'],
+                    datasets: [{
+                        label: 'Ingreso Institucional Consolidado',
+                        data: [p1Total, p2Total, p3Total],
+                        borderColor: '#002D62',
+                        backgroundColor: 'rgba(0, 45, 98, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#F5B800',
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ACTUALIZAR GRÁFICOS SEGÚN FILTROS
+        function updateCharts(periodFilter = 'ALL') {
+            if (!chartBarInstance) return;
+
+            const labels = currentData.map(d => d.code);
+
+            // Bar Chart
+            chartBarInstance.data.labels = labels;
+            chartBarInstance.data.datasets[0].data = currentData.map(d => {
+                if (periodFilter === 'p1') return d.p1;
+                if (periodFilter === 'p2') return d.p2;
+                if (periodFilter === 'p3') return d.p3;
+                return d.total;
+            });
+            chartBarInstance.update();
+
+            // Stacked Chart
+            chartStackedInstance.data.labels = labels;
+            chartStackedInstance.data.datasets[0].data = currentData.map(d => d.p1);
+            chartStackedInstance.data.datasets[1].data = currentData.map(d => d.p2);
+            chartStackedInstance.data.datasets[2].data = currentData.map(d => d.p3);
+            chartStackedInstance.update();
+
+            // Donut Chart
+            chartDonutInstance.data.labels = labels;
+            chartDonutInstance.data.datasets[0].data = currentData.map(d => {
+                if (periodFilter === 'p1') return d.p1;
+                if (periodFilter === 'p2') return d.p2;
+                if (periodFilter === 'p3') return d.p3;
+                return d.total;
+            });
+            chartDonutInstance.update();
+        }
+
+        // MÓDULO DE COMPARACIÓN DIRECTA (RECINTO A VS B)
+        function updateComparison() {
+            const codeA = document.getElementById('compCampusA').value;
+            const codeB = document.getElementById('compCampusB').value;
+
+            const recA = rawData.find(r => r.code === codeA);
+            const recB = rawData.find(r => r.code === codeB);
+
+            const container = document.getElementById('compareCardsContainer');
+            const diffTotal = recA.total - recB.total;
+            const pctDiff = recB.total > 0 ? (((recA.total - recB.total) / recB.total) * 100).toFixed(1) : 0;
+
+            container.innerHTML = `
+                <!-- Recinto A Card -->
+                <div class="bg-white p-4 rounded-xl border-2 border-isfodosu-navy shadow-sm relative">
+                    <span class="bg-isfodosu-navy text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Recinto A</span>
+                    <h5 class="text-base font-bold text-slate-800 mt-2">${recA.code} - ${recA.name}</h5>
+                    <p class="text-xs text-slate-500">${recA.city}</p>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-end">
+                        <div>
+                            <span class="text-xs text-slate-400 block">Total Estudiantes</span>
+                            <span class="text-2xl font-black text-isfodosu-navy">${recA.total}</span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">${recA.share}% share</span>
+                    </div>
+                </div>
+
+                <!-- Diferencia Card -->
+                <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 flex flex-col justify-center items-center text-center">
+                    <span class="text-xs font-bold uppercase text-slate-400 mb-1">Diferencia Neta (A - B)</span>
+                    <span class="text-3xl font-black ${diffTotal >= 0 ? 'text-emerald-700' : 'text-amber-700'}">
+                        ${diffTotal >= 0 ? '+' : ''}${diffTotal}
+                    </span>
+                    <span class="text-xs font-semibold ${diffTotal >= 0 ? 'text-emerald-600' : 'text-amber-600'} mt-1">
+                        ${diffTotal >= 0 ? '▲' : '▼'} ${pctDiff}% relativo
+                    </span>
+                    <p class="text-[11px] text-slate-500 mt-2">
+                        ${diffTotal > 0 ? `${recA.code} supera a ${recB.code}` : (diffTotal < 0 ? `${recB.code} supera a ${recA.code}` : 'Ambos recintos empatan')}
+                    </p>
+                </div>
+
+                <!-- Recinto B Card -->
+                <div class="bg-white p-4 rounded-xl border-2 border-isfodosu-gold shadow-sm relative">
+                    <span class="bg-isfodosu-gold text-isfodosu-navy text-[10px] font-bold px-2 py-0.5 rounded uppercase">Recinto B</span>
+                    <h5 class="text-base font-bold text-slate-800 mt-2">${recB.code} - ${recB.name}</h5>
+                    <p class="text-xs text-slate-500">${recB.city}</p>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-end">
+                        <div>
+                            <span class="text-xs text-slate-400 block">Total Estudiantes</span>
+                            <span class="text-2xl font-black text-isfodosu-slate">${recB.total}</span>
+                        </div>
+                        <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">${recB.share}% share</span>
+                    </div>
+                </div>
+            `;
+
+            // Actualizar Chart Comparativo
+            const ctxComp = document.getElementById('chartComp').getContext('2d');
+            if (chartCompInstance) chartCompInstance.destroy();
+
+            chartCompInstance = new Chart(ctxComp, {
+                type: 'bar',
+                data: {
+                    labels: ['Período 2026-01', 'Período 2026-02', 'Período 2026-03'],
+                    datasets: [
+                        {
+                            label: `${recA.code} (${recA.name})`,
+                            data: [recA.p1, recA.p2, recA.p3],
+                            backgroundColor: '#002D62'
+                        },
+                        {
+                            label: `${recB.code} (${recB.name})`,
+                            data: [recB.p1, recB.p2, recB.p3],
+                            backgroundColor: '#F5B800'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // CAMBIO DE PESTAÑAS (TABS)
+        function switchTab(tabId) {
+            ['charts', 'compare', 'analysis'].forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                const content = document.getElementById(`tabContent-${t}`);
+                if (t === tabId) {
+                    btn.className = 'tab-active py-3 px-2 text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap';
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = 'py-3 px-2 text-xs sm:text-sm text-slate-500 hover:text-slate-800 font-medium transition-all flex items-center gap-2 whitespace-nowrap';
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // MODAL DE DETALLE
+        function openModal(code) {
+            const item = rawData.find(r => r.code === code);
+            if (!item) return;
+
+            document.getElementById('modalCodeBadge').textContent = `RECINTO ${item.code}`;
+            document.getElementById('modalName').textContent = item.name;
+            document.getElementById('modalCity').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5"></i> ${item.city} (${item.region})`;
+            document.getElementById('modalP1').textContent = item.p1;
+            document.getElementById('modalP2').textContent = item.p2;
+            document.getElementById('modalP3').textContent = item.p3;
+            document.getElementById('modalTotal').textContent = item.total;
+            document.getElementById('modalShare').textContent = `${item.share}%`;
+            document.getElementById('modalDescription').textContent = item.desc;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        // RESTABLECER FILTROS
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('campusFilter').value = 'ALL';
+            document.getElementById('periodFilter').value = 'ALL';
+            document.getElementById('regionFilter').value = 'ALL';
+            applyFilters();
+        }
+
+        // EXPORTACIÓN A CSV
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Ranking,Codigo,Nombre Recinto,Ciudad,Region,2026-01,2026-02,2026-03,Total Activos,Porcentaje Share\n";
+
+            currentData.forEach(item => {
+                const row = [
+                    item.rank,
+                    `"${item.code}"`,
+                    `"${item.name}"`,
+                    `"${item.city}"`,
+                    `"${item.region}"`,
+                    item.p1,
+                    item.p2,
+                    item.p3,
+                    item.total,
+                    `"${item.share}%"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Cuadro_Estadistico_ISFODOSU_2026.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
